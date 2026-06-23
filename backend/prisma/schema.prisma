@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Role {
+  INTERVIEWER
+  CANDIDATE
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Interview {
+  id            String          @id @default(cuid())
+  interviewerId String
+  candidateId   String
+  roomToken     String          @unique
+  scheduledAt   DateTime
+  status        InterviewStatus @default(SCHEDULED)
+
+  interviewQuestions InterviewQuestion[]
+
+  codeSession  CodeSession?
+  chatMessages ChatMessage[]
+  submissions  Submission[]
+  aiSummary    AISummary?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Question {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  difficulty  Difficulty @default(MEDIUM)
+  starterCode Json
+  testCases   Json
+
+  interviewQuestions InterviewQuestion[]
+  submissions Submission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Interview and Question have many:many relation
+// Join table
+model InterviewQuestion {
+  id String @id @default(cuid())
+  interviewId String
+  questionId String
+  order Int   // sequence of questions came in each interview
+
+  interview Interview @relation(fields: [interviewId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([interviewId,questionId])
+  @@unique([interviewId,order])
+}
+
+
+model CodeSession {
+  id            String    @id @default(cuid())
+  interviewId   String    @unique
+  interview     Interview @relation(fields: [interviewId], references: [id])
+  language      String
+  currentCode   String    @default("")
+  version       Int       @default(0)
+  lastUpdatedAt DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  senderRole  Role
+  message     String
+  sentAt      DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Submission {
+  id            String    @id @default(cuid())
+  interviewId   String
+  interview     Interview @relation(fields: [interviewId], references: [id])
+  questionId    String
+  question      Question  @relation(fields: [questionId], references: [id])
+  language      String
+  code          String
+  testResults   Json
+  passCount     Int
+  totalCount    Int
+  executionTime Int?
+  memoryUsed    Int?
+  submittedAt   DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AISummary {
+  id          String    @id @default(cuid())
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id])
+  summaryText String
+  strengths   Json
+  weakness    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
