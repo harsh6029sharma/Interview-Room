@@ -17,6 +17,7 @@ enum InterviewStatus {
 enum Role {
   INTERVIEWER
   CANDIDATE
+  SYSTEM
 }
 
 enum Difficulty {
@@ -25,20 +26,41 @@ enum Difficulty {
   HARD
 }
 
+enum QuestionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SOLVED
+  SKIPPED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+}
+
 model Interview {
-  id            String          @id @default(cuid())
+  id             String          @id @default(cuid())
+  title          String
+  status         InterviewStatus @default(SCHEDULED)
+  scheduledAt    DateTime
+  startedAt      DateTime?
+  endedAt        DateTime?
+
+  candidateName  String?
+  candidateEmail String?
+
   interviewerId String
-  candidateId   String
-  roomToken     String          @unique
-  scheduledAt   DateTime
-  status        InterviewStatus @default(SCHEDULED)
+  interviewer   User   @relation(fields: [interviewerId], references: [id])
 
   interviewQuestions InterviewQuestion[]
-
-  codeSession  CodeSession?
-  chatMessages ChatMessage[]
-  submissions  Submission[]
-  aiSummary    AISummary?
+  chatMessages       ChatMessage[]
+  aiSummary          AISummary?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,61 +75,63 @@ model Question {
   testCases   Json
 
   interviewQuestions InterviewQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InterviewQuestion {
+  id     String         @id @default(cuid())
+  order  Int
+  status QuestionStatus @default(NOT_STARTED)
+
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id])
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+
+  codeSession CodeSession?
   submissions Submission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([interviewId, questionId])
+  @@unique([interviewId, order])
 }
-
-// Interview and Question have many:many relation
-// Join table
-model InterviewQuestion {
-  id String @id @default(cuid())
-  interviewId String
-  questionId String
-  order Int   // sequence of questions came in each interview
-
-  interview Interview @relation(fields: [interviewId], references: [id])
-  question Question @relation(fields: [questionId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([interviewId,questionId])
-  @@unique([interviewId,order])
-}
-
 
 model CodeSession {
-  id            String    @id @default(cuid())
-  interviewId   String    @unique
-  interview     Interview @relation(fields: [interviewId], references: [id])
+  id            String   @id @default(cuid())
   language      String
-  currentCode   String    @default("")
-  version       Int       @default(0)
-  lastUpdatedAt DateTime  @updatedAt
+  currentCode   String   @default("")
+  version       Int      @default(0)
+  lastUpdatedAt DateTime @updatedAt
+
+  interviewQuestionId String            @unique
+  interviewQuestion   InterviewQuestion @relation(fields: [interviewQuestionId], references: [id])
 
   createdAt DateTime @default(now())
 }
 
 model ChatMessage {
-  id          String    @id @default(cuid())
+  id         String   @id @default(cuid())
+  senderRole Role
+  senderName String?
+  message    String
+  sentAt     DateTime @default(now())
+
   interviewId String
   interview   Interview @relation(fields: [interviewId], references: [id])
-  senderRole  Role
-  message     String
-  sentAt      DateTime  @default(now())
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Submission {
-  id            String    @id @default(cuid())
-  interviewId   String
-  interview     Interview @relation(fields: [interviewId], references: [id])
-  questionId    String
-  question      Question  @relation(fields: [questionId], references: [id])
+  id            String   @id @default(cuid())
   language      String
   code          String
   testResults   Json
@@ -115,19 +139,24 @@ model Submission {
   totalCount    Int
   executionTime Int?
   memoryUsed    Int?
-  submittedAt   DateTime  @default(now())
+  submittedAt   DateTime @default(now())
+
+  interviewQuestionId String
+  interviewQuestion   InterviewQuestion @relation(fields: [interviewQuestionId], references: [id])
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model AISummary {
-  id          String    @id @default(cuid())
+  id             String   @id @default(cuid())
+  summaryText    String
+  strengths      Json
+  weaknesses     Json
+  recommendation String
+
   interviewId String    @unique
   interview   Interview @relation(fields: [interviewId], references: [id])
-  summaryText String
-  strengths   Json
-  weakness    Json
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
