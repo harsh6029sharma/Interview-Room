@@ -5,6 +5,7 @@ import { signAuthToken } from '../utils/jwt.util'
 
 
 export async function signup(email: string, password: string, name: string) {
+
     // check the existing user
     const existingUser = await prisma.user.findUnique({
         where: {

@@ -32,12 +32,10 @@ export function requireAuthSession(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export function requireRoomSession(req: Request, res: Response, next: NextFunction) {
+export function requireRoomAccess(req: Request, res: Response, next: NextFunction) {
     try {
         const token = extractToken(req)
         const room = verifyRoomToken(token)
-
-        req.room = room
 
         const routeInterviewId = req.params.id;
         if (room.interviewId !== routeInterviewId) {
