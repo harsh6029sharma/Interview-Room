@@ -2,39 +2,61 @@ import bcrypt from 'bcrypt'
 import { ApiError } from '../utils/ApiError'
 import { prisma } from '../lib/prisma'
 import { signAuthToken } from '../utils/jwt.util'
-
+import 'dotenv/config'
+import { sanitizeUser } from '../utils/sanitizerUser'
+import { logger } from '../lib/logger'
 
 export async function signup(email: string, password: string, name: string) {
 
-    // check the existing user
-    const existingUser = await prisma.user.findUnique({
-        where: {
-            email: email
-        }
-    })
+    const saltRounds = Number(process.env.SALT_ROUNDS);
 
-    if (!existingUser) {
-        throw new ApiError(409, "Email already registered")
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    try {
+        logger.info({ email }, "Signup attempt");
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                name
+            }
+        });
+
+        const token = signAuthToken({
+            sub: user.id,
+            email: user.email
+        });
+
+       logger.info({ userId: user.id }, "Signup successful"); 
+
+        return {
+            token,
+            user: sanitizeUser(user)
+        };
+
+        
+    }catch (error: any) {
+    if (error.code === "P2002") {
+        logger.warn({ email }, "Signup blocked - email exists");
+        throw new ApiError(409, "Email already registered");
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const user = await prisma.user.create({
-        data: {
-            email: email,
-            password: hashedPassword,
-            name: name
-        }
-    })
-
-    const token = signAuthToken({ sub: user.id, email: user.email })
-    return { token, user: { id: user.id, email: user.email, name: user.name } }
-
+    logger.error({ email, err: error }, "Signup failed - unexpected error");
+    throw error;
+}
 }
 
 export async function login(email: string, password: string) {
+     logger.info({ email }, "Login attempt");
     const user = await prisma.user.findUnique({
         where: {
-            email: email
+            email
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            password: true
         }
     })
 
@@ -45,5 +67,9 @@ export async function login(email: string, password: string) {
     if (!isValidPassword) throw new ApiError(401, "Invalid credentials");
 
     const token = signAuthToken({ sub: user.id, email: user.email });
-    return { token, user: { id: user.id, email: user.email, name: user.name } };
+    logger.info({ userId: user.id }, "Login successful");
+    return {
+        token,
+        user: sanitizeUser(user)
+    }
 }

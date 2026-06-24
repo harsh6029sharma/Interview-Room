@@ -1,50 +1,96 @@
+import { logger } from "../lib/logger"
 import { prisma } from "../lib/prisma"
 import { ApiError } from "../utils/ApiError"
 import { signRoomToken } from "../utils/jwt.util"
 
 export interface CreateInterviewInput {
-    interviewerId:string
-    title:string
-    scheduledAt:Date
+  interviewerId: string
+  title: string
+  scheduledAt: Date
 }
 
-export interface JoinCandidateInput{
-    interviewId:string
-    candidateName: string
-    candidateEmail:string
+export interface JoinCandidateInput {
+  interviewId: string
+  candidateName: string
+  candidateEmail: string
 }
 
-export async function createInterview(input:CreateInterviewInput){
-    return prisma.interview.create({
-        data:{
-            interviewerId:input.interviewerId,
-            title:input.title,
-            scheduledAt:input.scheduledAt
-        }
-    })
-}
+export async function createInterview(input: CreateInterviewInput) {
 
-
-export async function joinAsInterviewer(interviewId:string,userId:string){
-    const interview = await prisma.interview.findUnique({
-        where:{
-            id:interviewId
-        }
-    })
-
-    if (!interview) throw new ApiError(404, "Interview not found")
-
-    if(interview.interviewerId !== userId){
-        throw new ApiError(403, "you are not the interviewer for this interview")
+  logger.info({ input }, "createInterview called");
+  const interview = await prisma.interview.create({
+    data: {
+      interviewerId: input.interviewerId,
+      title: input.title,
+      scheduledAt: input.scheduledAt
     }
+  })
 
-    const token = signRoomToken({interviewId, role:"INTERVIEWER", userId})
-    return token
+  logger.info(
+    { interviewId: interview.id },
+    "Interview created successfully"
+  );
+
+  return interview
+}
+
+
+export async function joinAsInterviewer(interviewId: string, userId: string) {
+
+  logger.info(
+    { interviewId, userId },
+    "joinAsInterviewer called"
+  );
+  const interview = await prisma.interview.findUnique({
+    where: {
+      id: interviewId
+    }
+  })
+
+  if (!interview) {
+    logger.warn(
+      { interviewId },
+      "Interview not found"
+    );
+    throw new ApiError(404, "Interview not found")
+
+  }
+
+  if (interview.interviewerId !== userId) {
+    logger.warn(
+      { interviewId, userId },
+      "Unauthorized interviewer access"
+    );
+    throw new ApiError(403, "you are not the interviewer for this interview")
+  }
+
+  const token = signRoomToken({ interviewId, role: "INTERVIEWER", userId })
+
+  logger.info(
+    { interviewId, userId },
+    "Interviewer joined successfully"
+  );
+
+
+  return token
 }
 
 export async function joinAsCandidate(input: JoinCandidateInput) {
+
+  logger.info(
+    { interviewId: input.interviewId },
+    "joinAsCandidate called"
+  );
+
   const interview = await prisma.interview.findUnique({ where: { id: input.interviewId } })
-  if (!interview) throw new ApiError(404, "Interview not found")
+  if (!interview) {
+    logger.warn(
+      { interviewId: input.interviewId },
+      "Interview not found"
+    );
+    throw new ApiError(404, "Interview not found")
+
+  }
   if (interview.status === "COMPLETED" || interview.status === "CANCELLED") {
     throw new ApiError(400, `Interview is ${interview.status.toLowerCase()}`)
   }
@@ -57,6 +103,14 @@ export async function joinAsCandidate(input: JoinCandidateInput) {
     },
   })
 
+  logger.info(
+    {
+      interviewId: input.interviewId,
+      candidateEmail: input.candidateEmail
+    },
+    "Candidate details saved"
+  );
+
   const token = signRoomToken({
     interviewId: input.interviewId,
     role: "CANDIDATE",
@@ -67,10 +121,23 @@ export async function joinAsCandidate(input: JoinCandidateInput) {
 }
 
 export async function getInterviewById(interviewId: string) {
+  logger.debug(
+    { interviewId },
+    "Fetching interview"
+  );
+
   const interview = await prisma.interview.findUnique({
     where: { id: interviewId },
     include: { interviewQuestions: { include: { question: true } } },
   });
-  if (!interview) throw new ApiError(404, "Interview not found");
+  if (!interview) {
+    logger.warn(
+      { interviewId },
+      "Interview not found"
+    );
+    throw new ApiError(404, "Interview not found");
+
+  }
+
   return interview;
 }

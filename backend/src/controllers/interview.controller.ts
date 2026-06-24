@@ -7,6 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse";
 
 
 export const createInterviewHandler = asyncHandler(async (req: Request, res: Response) => {
+    
     const result = createInterviewSchema.safeParse(req.body)
 
     if (!result.success) {
