@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
 
+dummyData/
+
 # Build output
 dist/
 build/

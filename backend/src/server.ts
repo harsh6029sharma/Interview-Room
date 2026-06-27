@@ -1,12 +1,13 @@
 import 'dotenv/config'
-import pinoHttp from "pino-http";
-import { logger } from "./lib/logger";
 import app from "./app"
+import { createServer } from 'http';
+import { initSocket } from './sockets/socket';
 
 const port = process.env.PORT || 3000;
 
-app.use(pinoHttp({ logger }));
+const httpServer = createServer(app)
+initSocket(httpServer)
 
-app.listen(port, ()=>{
+httpServer.listen(port, ()=>{
     console.log(`server is listening on port:${port}`)
 })
