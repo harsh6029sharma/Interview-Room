@@ -1,5 +1,3 @@
-
-
 export interface TestCase {
     input: unknown[],
     output: unknown
