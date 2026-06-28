@@ -45,12 +45,12 @@ model User {
 }
 
 model Interview {
-  id             String          @id @default(cuid())
-  title          String
-  status         InterviewStatus @default(SCHEDULED)
-  scheduledAt    DateTime
-  startedAt      DateTime?
-  endedAt        DateTime?
+  id          String          @id @default(cuid())
+  title       String
+  status      InterviewStatus @default(SCHEDULED)
+  scheduledAt DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
 
   candidateName  String?
   candidateEmail String?
@@ -67,12 +67,13 @@ model Interview {
 }
 
 model Question {
-  id          String     @id @default(cuid())
-  title       String
-  description String
-  difficulty  Difficulty @default(MEDIUM)
-  starterCode Json
-  testCases   Json
+  id           String     @id @default(cuid())
+  title        String
+  description  String
+  difficulty   Difficulty @default(MEDIUM)
+  starterCode  Json
+  testCases    Json
+  functionName String
 
   interviewQuestions InterviewQuestion[]
 
@@ -148,7 +149,7 @@ model Submission {
 }
 
 model AISummary {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   summaryText    String
   strengths      Json
   weaknesses     Json

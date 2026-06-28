@@ -20,7 +20,7 @@ async function executeCode(submissionId: string) {
   console.log(`  language: ${submission.language}`);
   console.log(`  testCases:`, submission.interviewQuestion.question.testCases);
 
-  // PLACEHOLDER result — it will be updated with the real sandbox data results
+  // placeholder result — it will be updated with the real sandbox data results
   await prisma.submission.update({
     where: { id: submissionId },
     data: {
