@@ -19,15 +19,27 @@ export interface ClientToServerEvents {
 
 export interface ServerToClientEvents {
   "code:init": (data: { code: string; language: string; version: number }) => void;
+
   "code:update": (data: { code: string; language: string; version: number }) => void;
+
   "chat:message": (data: {
     senderRole: "INTERVIEWER" | "CANDIDATE" | "SYSTEM";
     senderName: string | null;
     message: string;
     sentAt: Date;
   }) => void;
+
+  "submission:result": (data: {
+    submissionId: string;
+    passCount: number;
+    totalCount: number;
+    testResults: unknown;
+    executionTime: number | null;
+  }) => void;
+  
   "error": (data: { message: string }) => void;
 }
+
 
 export type AppSocket = Socket<
   ClientToServerEvents,

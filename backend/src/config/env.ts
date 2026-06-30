@@ -5,6 +5,8 @@ export const env = {
   jwtRoomSecret: process.env.JWT_ROOM_SECRET!,
   jwtAuthExpiry: 60 * 60 * 24 * 7,   // 7 days
   jwtRoomExpiry: 60 * 60 * 4,        // 4 hours
+  redisHost: process.env.REDIS_HOST ?? "localhost",
+  redisPort: Number(process.env.REDIS_PORT ?? 6379),
 };
 
 if (!env.jwtAuthSecret || !env.jwtRoomSecret) {

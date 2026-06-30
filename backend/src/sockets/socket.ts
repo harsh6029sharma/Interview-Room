@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import { verifyRoomToken } from "../utils/jwt.util";
 import type { ClientToServerEvents, ServerToClientEvents, SocketData } from "./socket.types";
 import { prisma } from "../lib/prisma";
+import { redisSubscriber, SUBMISSION_COMPLETED_CHANNEL } from "../lib/redisPubSub";
 
 export function initSocket(httpServer: HttpServer) {
   const io = new Server<
@@ -144,9 +145,34 @@ export function initSocket(httpServer: HttpServer) {
       }
     })
 
-    socket.on("disconnect", ()=>{
+    socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}, interview: ${interviewId}`);
     })
+  })
+  redisSubscriber.subscribe(SUBMISSION_COMPLETED_CHANNEL);
+  redisSubscriber.on("message", async (channel, message) => {
+    if (channel !== SUBMISSION_COMPLETED_CHANNEL) return;
+
+    try {
+      const { interviewId, submissionId } = JSON.parse(message)
+
+      const submission = await prisma.submission.findUnique({
+        where: { id: submissionId }
+      })
+
+      if (!submission) return
+
+      io.to(interviewId).emit("submission:result", {
+        submissionId,
+        passCount: submission.passCount,
+        totalCount: submission.totalCount,
+        testResults: submission.testResults,
+        executionTime: submission.executionTime
+      })
+
+    } catch (error) {
+      console.error(error)
+    }
   })
 
   return io

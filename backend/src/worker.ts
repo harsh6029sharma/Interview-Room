@@ -4,6 +4,7 @@ import { prisma } from "./lib/prisma";
 import { Prisma } from "../generated/prisma/client";
 import { connection,type CodeExecutionJob } from "./queues/codeExecution.queue";
 import { Worker,Job } from "bullmq";
+import { publishSubmissionCompleted } from "./lib/redisPubSub";
 
 async function executeCode(submissionId: string) {
   const submission = await prisma.submission.findUnique({
@@ -17,7 +18,7 @@ async function executeCode(submissionId: string) {
     throw new Error(`Submission ${submissionId} not found`);
   }
 
-  const { question } = submission.interviewQuestion
+  const { question,interviewId } = submission.interviewQuestion
 
   const testCases = question.testCases as unknown as TestCase[]
 
@@ -38,6 +39,9 @@ async function executeCode(submissionId: string) {
       executionTime: result.executionTimeMs
     }
   })
+
+  await publishSubmissionCompleted({interviewId, submissionId})
+
   console.log(`[worker] Submission ${submissionId}: ${result.passCount}/${result.totalCount} passed`);
 }
 
