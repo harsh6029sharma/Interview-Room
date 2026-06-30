@@ -2,6 +2,8 @@ import { runInSandbox } from "./sandbox/runner";
 import type { TestCase } from "./sandbox/harness";
 import { prisma } from "./lib/prisma";
 import { Prisma } from "../generated/prisma/client";
+import { connection,type CodeExecutionJob } from "./queues/codeExecution.queue";
+import { Worker,Job } from "bullmq";
 
 async function executeCode(submissionId: string) {
   const submission = await prisma.submission.findUnique({
@@ -38,3 +40,21 @@ async function executeCode(submissionId: string) {
   })
   console.log(`[worker] Submission ${submissionId}: ${result.passCount}/${result.totalCount} passed`);
 }
+
+const worker = new Worker<CodeExecutionJob>(
+  "code-execution",
+  async (job: Job<CodeExecutionJob>) => {
+    await executeCode(job.data.submissionId);
+  },
+  { connection, concurrency: 2 }
+);
+
+worker.on("completed", (job) => {
+  console.log(`[worker] Job ${job.id} completed`);
+});
+
+worker.on("failed", (job, err) => {
+  console.error(`[worker] Job ${job?.id} failed:`, err.message);
+});
+
+console.log("Worker started, listening for code-execution jobs...");

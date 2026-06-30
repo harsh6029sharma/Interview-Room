@@ -103,9 +103,9 @@ async function main() {
     console.log("Details:", JSON.stringify(result.testResults, null, 2));
 
     if (result.passCount === 2 && result.totalCount === 3) {
-      console.log("\n✅ Expected outcome (2 pass, 1 intentional fail) — sandbox working correctly.");
+      console.log("\nExpected outcome (2 pass, 1 intentional fail) — sandbox working correctly.");
     } else {
-      console.log("\n⚠️ Unexpected pass count — check harness/runner logic.");
+      console.log("\nUnexpected pass count — check harness/runner logic.");
     }
   }
 
