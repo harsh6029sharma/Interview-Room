@@ -15,6 +15,9 @@ export interface ClientToServerEvents {
     language: string;
   }) => void;
   "chat:message": (data: { message: string }) => void;
+  "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:ice-candidate": (data: { candidate: RTCIceCandidateInit }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -36,7 +39,11 @@ export interface ServerToClientEvents {
     testResults: unknown;
     executionTime: number | null;
   }) => void;
-  
+
+  "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:ice-candidate": (data: { candidate: RTCIceCandidateInit }) => void;
+
   "error": (data: { message: string }) => void;
 }
 

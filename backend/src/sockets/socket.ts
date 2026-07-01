@@ -144,6 +144,20 @@ export function initSocket(httpServer: HttpServer) {
         socket.emit("error", { message: "Failed to send message" });
       }
     })
+    // interviewer -> socket -> candidate
+    socket.on("webrtc:offer", (data)=>{
+      socket.to(interviewId).emit("webrtc:offer", data)
+    })
+
+    // answer from interviewer to candidate
+    socket.on("webrtc:answer", (data)=>{
+      socket.to(interviewId).emit("webrtc:answer", data)
+    })
+
+    socket.on("webrtc:ice-candidate", (data)=>{
+      socket.to(interviewId).emit("webrtc:ice-candidate", data)
+    })
+
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}, interview: ${interviewId}`);
