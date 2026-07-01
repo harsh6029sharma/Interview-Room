@@ -2,6 +2,7 @@ import { logger } from "../lib/logger"
 import { prisma } from "../lib/prisma"
 import { ApiError } from "../utils/ApiError"
 import { signRoomToken } from "../utils/jwt.util"
+import { generateAndSaveAISummary } from "./ai.service"
 
 export interface CreateInterviewInput {
   interviewerId: string
@@ -140,4 +141,23 @@ export async function getInterviewById(interviewId: string) {
   }
 
   return interview;
+}
+
+export async function completeInterview(interviewId:string, requesterId:string){
+  const interview = await prisma.interview.findUnique({where:{id:interviewId}})
+
+  if (!interview) throw new ApiError(404, "Interview not found");
+  if (interview.interviewerId !== requesterId) throw new ApiError(403, "Only the interviewer can complete this interview");
+  if (interview.status === "COMPLETED") throw new ApiError(400, "Interview already completed");
+
+  await prisma.interview.update({
+    where:{id:interviewId},
+    data:{
+      status:"COMPLETED",
+      endedAt:new Date()
+    }
+  })
+
+  const summary = await generateAndSaveAISummary(interviewId)
+  return summary
 }

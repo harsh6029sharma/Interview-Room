@@ -79,3 +79,15 @@ export const getInterviewHandler = asyncHandler(async (req: Request, res: Respon
         new ApiResponse(200, interview, "interview fetched successfully")
     );
 });
+
+
+export const completeInterviewHandler = asyncHandler(async(req:Request,res:Response)=>{
+    const id = req.params.id as string
+    const userId = req.user?.sub
+
+    if(!userId) throw new ApiError(401, "Unauthorized")
+
+    const summary = await interviewService.completeInterview(id,userId)
+    
+    res.status(200).json(new ApiResponse(200, summary, "Interview completed and summary generated"))
+})

@@ -7,6 +7,7 @@ export const env = {
   jwtRoomExpiry: 60 * 60 * 4,        // 4 hours
   redisHost: process.env.REDIS_HOST ?? "localhost",
   redisPort: Number(process.env.REDIS_PORT ?? 6379),
+  groqApiKey:process.env.GROQ_API_KEY
 };
 
 if (!env.jwtAuthSecret || !env.jwtRoomSecret) {
