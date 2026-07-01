@@ -161,3 +161,17 @@ export async function completeInterview(interviewId:string, requesterId:string){
   const summary = await generateAndSaveAISummary(interviewId)
   return summary
 }
+
+export async function getInterviewsByInterviewer(interviewerId: string) {
+  logger.debug(
+    { interviewerId },
+    "Fetching interviews for interviewer"
+  );
+
+  const interviews = await prisma.interview.findMany({
+    where: { interviewerId },
+    orderBy: { scheduledAt: "desc" },
+  });
+
+  return interviews;
+}

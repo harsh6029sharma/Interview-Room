@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse";
 
 
 export const createInterviewHandler = asyncHandler(async (req: Request, res: Response) => {
-    
+
     const result = createInterviewSchema.safeParse(req.body)
 
     if (!result.success) {
@@ -80,14 +80,19 @@ export const getInterviewHandler = asyncHandler(async (req: Request, res: Respon
     );
 });
 
+export const getInterviews = asyncHandler(async (req: Request, res: Response) => {
+    const interviews = await interviewService.getInterviewsByInterviewer(req.user!.sub);
+    res.status(200).json(new ApiResponse(200, interviews, "interviews fetched successfully"));
+});
 
-export const completeInterviewHandler = asyncHandler(async(req:Request,res:Response)=>{
+
+export const completeInterviewHandler = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string
     const userId = req.user?.sub
 
-    if(!userId) throw new ApiError(401, "Unauthorized")
+    if (!userId) throw new ApiError(401, "Unauthorized")
 
-    const summary = await interviewService.completeInterview(id,userId)
-    
+    const summary = await interviewService.completeInterview(id, userId)
+
     res.status(200).json(new ApiResponse(200, summary, "Interview completed and summary generated"))
 })
