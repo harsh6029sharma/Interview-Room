@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import authRoutes from './routes/auth.route'
 import interviewRoutes from './routes/interview.route'
 import { errorMiddleware } from './middlewares/error.middleware';
+import submissionRoutes from './routes/submission.route'
 
 const app = express()
 
@@ -16,6 +17,7 @@ app.use(cookieParser())
 
 app.use("/api/v1/auth",authRoutes)
 app.use("/api/v1/interviews",interviewRoutes)
+app.use("/api/v1", submissionRoutes)
 
 // Health check
 app.get('/health', (req, res) => {

@@ -31,6 +31,7 @@ async function setupTestData() {
     data: {
       title: "Reverse a string",
       description: "Write a function to reverse a string.",
+      functionName: "reverseString",
       starterCode: { javascript: "function reverse(s) {\n  // TODO\n}" },
       testCases: [],
     },
