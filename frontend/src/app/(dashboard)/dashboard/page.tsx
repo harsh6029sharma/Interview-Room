@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { getInterviews } from "@/features/interview/api";
 import type { Interview } from "@/features/interview/types";
 import { useAuthStore } from "@/stores/auth-store";
+import { CreateInterviewDialog } from "@/features/interview/components/create-interview-dialog";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -13,6 +15,10 @@ export default function DashboardPage() {
 
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function handleCreated(interview: Interview) {
+    setInterviews((prev) => [interview, ...prev]);
+  }
 
   useEffect(() => {
     if (!authToken) {
@@ -29,18 +35,23 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Your Interviews</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Your Interviews</h1>
+        <CreateInterviewDialog onCreated={handleCreated} />
+      </div>
 
       {interviews.length === 0 && <p>No interviews yet.</p>}
 
       <div className="space-y-3">
         {interviews.map((interview) => (
-          <div key={interview.id} className="rounded-lg border p-4">
-            <h2 className="font-medium">{interview.title}</h2>
-            <p className="text-sm text-gray-500">
-              {interview.status} — {new Date(interview.scheduledAt).toLocaleString()}
-            </p>
-          </div>
+          <Link key={interview.id} href={`/interviews/${interview.id}`}>
+            <div className="rounded-lg border p-4 hover:bg-accent cursor-pointer">
+              <h2 className="font-medium">{interview.title}</h2>
+              <p className="text-sm text-gray-500">
+                {interview.status} — {new Date(interview.scheduledAt).toLocaleString()}
+              </p>
+            </div>
+          </Link>
         ))}
       </div>
     </div>

@@ -75,6 +75,16 @@ export const getInterviewHandler = asyncHandler(async (req: Request, res: Respon
     }
 
     const interview = await interviewService.getInterviewById(interviewId);
+          
+    const userId = req.user?.sub;
+    if (!userId) {
+        throw new ApiError(401, "Unauthorized");
+    }
+
+    if (interview.interviewerId !== userId) {
+        throw new ApiError(403, "Not authorized to view this interview");
+    }
+
     return res.status(200).json(
         new ApiResponse(200, interview, "interview fetched successfully")
     );
