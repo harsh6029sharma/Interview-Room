@@ -1,3 +1,18 @@
+export interface Question {
+  id: string;
+  title: string;
+  description: string;
+  starterCode: Record<string, string>;
+  difficulty?: string;
+}
+
+export interface InterviewQuestion {
+  id: string;
+  interviewId: string;
+  questionId: string;
+  question: Question;
+}
+
 export interface Interview {
   id: string;
   title: string;
@@ -10,4 +25,5 @@ export interface Interview {
   interviewerId: string;
   createdAt: string;
   updatedAt: string;
+  interviewQuestions: InterviewQuestion[];
 }

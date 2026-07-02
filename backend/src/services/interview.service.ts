@@ -72,8 +72,7 @@ export async function joinAsInterviewer(interviewId: string, userId: string) {
     "Interviewer joined successfully"
   );
 
-
-  return token
+  return { roomToken: token }
 }
 
 export async function joinAsCandidate(input: JoinCandidateInput) {
@@ -118,7 +117,7 @@ export async function joinAsCandidate(input: JoinCandidateInput) {
     userId: null,
     candidateName: input.candidateName,
   })
-  return { token }
+  return { roomToken:token }
 }
 
 export async function getInterviewById(interviewId: string) {

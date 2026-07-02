@@ -49,6 +49,27 @@ export function initSocket(httpServer: HttpServer) {
 
     }
 
+    try {
+      const interview = await prisma.interview.findUnique({
+        where: { id: interviewId },
+        include: { interviewQuestions: { include: { question: true } } }
+      })
+
+      if (interview) {
+        socket.emit("room:init", {
+          interviewId: interview.id,
+          title: interview.title,
+          status: interview.status,
+          interviewQuestions: interview.interviewQuestions.map((iq) => ({
+            id: iq.id,
+            questionTitle: iq.question.title
+          }))
+        })
+      }
+    } catch (err) {
+      socket.emit("error", { message: "Failed to load room data" })
+    }
+
     // code:join
     socket.on("code:join", async ({ interviewQuestionId }) => {
       try {
@@ -145,16 +166,16 @@ export function initSocket(httpServer: HttpServer) {
       }
     })
     // interviewer -> socket -> candidate
-    socket.on("webrtc:offer", (data)=>{
+    socket.on("webrtc:offer", (data) => {
       socket.to(interviewId).emit("webrtc:offer", data)
     })
 
     // answer from interviewer to candidate
-    socket.on("webrtc:answer", (data)=>{
+    socket.on("webrtc:answer", (data) => {
       socket.to(interviewId).emit("webrtc:answer", data)
     })
 
-    socket.on("webrtc:ice-candidate", (data)=>{
+    socket.on("webrtc:ice-candidate", (data) => {
       socket.to(interviewId).emit("webrtc:ice-candidate", data)
     })
 
