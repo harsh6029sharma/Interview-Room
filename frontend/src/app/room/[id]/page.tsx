@@ -6,6 +6,7 @@ import { useSocket } from "@/hooks/use-socket";
 import { useElapsedTime } from "@/hooks/use-elapsed-time";
 import { CodeEditor } from "@/features/editor/components/code-editor";
 import { QuestionPanel } from "@/features/interview-room/components/question-panel";
+import { SubmissionPanel } from "@/features/interview-room/components/submission-panel";
 
 interface RoomInterviewQuestion {
   id: string;
@@ -27,6 +28,8 @@ export default function RoomPage() {
   const params = useParams<{ id: string }>();
   const [roomToken, setRoomToken] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<RoomInit | null>(null);
+  const [currentCode, setCurrentCode] = useState("");
+  const [currentLanguage, setCurrentLanguage] = useState("javascript");
   const joinedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -54,9 +57,7 @@ export default function RoomPage() {
   const elapsedTime = useElapsedTime(joinedAtRef.current);
 
   if (!roomToken) {
-    return (
-      <p className="p-6">No room access. Please join from the dashboard.</p>
-    );
+    return <p className="p-6">No room access. Please join from the dashboard.</p>;
   }
 
   const activeQuestion = roomData?.interviewQuestions?.[0];
@@ -64,9 +65,7 @@ export default function RoomPage() {
   return (
     <div className="flex h-screen flex-col">
       <header className="flex h-14 items-center justify-between border-b px-4">
-        <span className="font-medium">
-          {roomData?.title ?? "Interview Room"}
-        </span>
+        <span className="font-medium">{roomData?.title ?? "Interview Room"}</span>
         <div className="flex items-center gap-4">
           <span className="text-sm font-mono text-gray-300">{elapsedTime}</span>
           <span className="text-sm text-gray-300">
@@ -90,8 +89,20 @@ export default function RoomPage() {
                 <CodeEditor
                   socket={socket}
                   interviewQuestionId={activeQuestion.id}
+                  onCodeChange={(code, language) => {
+                    setCurrentCode(code);
+                    setCurrentLanguage(language);
+                  }}
                 />
               </div>
+              <SubmissionPanel
+                socket={socket}
+                interviewId={roomData!.interviewId}
+                interviewQuestionId={activeQuestion.id}
+                code={currentCode}
+                language={currentLanguage}
+                roomToken={roomToken}
+              />
             </>
           ) : (
             <p className="p-4 text-sm text-gray-500">Loading question...</p>
@@ -107,10 +118,6 @@ export default function RoomPage() {
           </div>
         </div>
       </div>
-
-      <footer className="border-t p-4">
-        <p className="text-sm text-gray-500">Submit panel goes here</p>
-      </footer>
     </div>
   );
 }

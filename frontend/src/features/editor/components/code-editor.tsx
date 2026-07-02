@@ -10,9 +10,10 @@ type AppClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 interface CodeEditorProps {
   socket: AppClientSocket | null;
   interviewQuestionId: string;
+  onCodeChange?: (code: string, language: string) => void;
 }
 
-export function CodeEditor({ socket, interviewQuestionId }: CodeEditorProps) {
+export function CodeEditor({ socket, interviewQuestionId, onCodeChange }: CodeEditorProps) {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
   const versionRef = useRef(0);
@@ -41,6 +42,10 @@ export function CodeEditor({ socket, interviewQuestionId }: CodeEditorProps) {
       socket.off("code:update");
     };
   }, [socket, interviewQuestionId]);
+
+  useEffect(() => {
+    onCodeChange?.(code, language);
+  }, [code, language, onCodeChange]);
 
   function handleChange(value: string | undefined) {
     if (isRemoteUpdate.current) {
