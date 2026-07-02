@@ -1,21 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSocket } from "@/hooks/use-socket";
+import { useElapsedTime } from "@/hooks/use-elapsed-time";
 import { CodeEditor } from "@/features/editor/components/code-editor";
+import { QuestionPanel } from "@/features/interview-room/components/question-panel";
+
+interface RoomInterviewQuestion {
+  id: string;
+  questionTitle: string;
+  questionDescription: string;
+  functionName: string;
+  difficulty: string;
+  exampleTestCases: { input: unknown; expected: unknown }[];
+}
 
 interface RoomInit {
   interviewId: string;
   title: string;
   status: string;
-  interviewQuestions: { id: string; questionTitle: string }[];
+  interviewQuestions: RoomInterviewQuestion[];
 }
 
 export default function RoomPage() {
   const params = useParams<{ id: string }>();
   const [roomToken, setRoomToken] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<RoomInit | null>(null);
+  const joinedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     const token = sessionStorage.getItem("roomToken");
@@ -28,8 +40,10 @@ export default function RoomPage() {
     if (!socket) return;
 
     socket.on("room:init", (data) => {
-      console.log("room:init received:", data);
       setRoomData(data);
+      if (!joinedAtRef.current) {
+        joinedAtRef.current = Date.now();
+      }
     });
 
     return () => {
@@ -37,13 +51,15 @@ export default function RoomPage() {
     };
   }, [socket]);
 
+  const elapsedTime = useElapsedTime(joinedAtRef.current);
+
   if (!roomToken) {
     return (
       <p className="p-6">No room access. Please join from the dashboard.</p>
     );
   }
 
-  const interviewQuestionId = roomData?.interviewQuestions?.[0]?.id;
+  const activeQuestion = roomData?.interviewQuestions?.[0];
 
   return (
     <div className="flex h-screen flex-col">
@@ -51,18 +67,32 @@ export default function RoomPage() {
         <span className="font-medium">
           {roomData?.title ?? "Interview Room"}
         </span>
-        <span className="text-sm text-gray-500">
-          Status: {connected ? "connected" : "connecting"}
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-mono text-gray-300">{elapsedTime}</span>
+          <span className="text-sm text-gray-300">
+            Status: {connected ? "connected" : "connecting"}
+          </span>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 border-r">
-          {interviewQuestionId ? (
-            <CodeEditor
-              socket={socket}
-              interviewQuestionId={interviewQuestionId}
-            />
+        <div className="flex flex-1 flex-col border-r overflow-hidden">
+          {activeQuestion ? (
+            <>
+              <QuestionPanel
+                title={activeQuestion.questionTitle}
+                description={activeQuestion.questionDescription}
+                functionName={activeQuestion.functionName}
+                difficulty={activeQuestion.difficulty}
+                exampleTestCases={activeQuestion.exampleTestCases}
+              />
+              <div className="flex-1">
+                <CodeEditor
+                  socket={socket}
+                  interviewQuestionId={activeQuestion.id}
+                />
+              </div>
+            </>
           ) : (
             <p className="p-4 text-sm text-gray-500">Loading question...</p>
           )}

@@ -62,9 +62,14 @@ export function initSocket(httpServer: HttpServer) {
           status: interview.status,
           interviewQuestions: interview.interviewQuestions.map((iq) => ({
             id: iq.id,
-            questionTitle: iq.question.title
+            questionTitle: iq.question.title,
+            questionDescription: iq.question.description,
+            functionName: iq.question.functionName,
+            difficulty: iq.question.difficulty,
+            exampleTestCases: (iq.question.testCases as { input: unknown; expected: unknown }[]).slice(0, 2),
           }))
         })
+
       }
     } catch (err) {
       socket.emit("error", { message: "Failed to load room data" })

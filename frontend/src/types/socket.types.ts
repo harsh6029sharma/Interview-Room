@@ -1,14 +1,14 @@
 export interface ClientToServerEvents {
-    "code:join": (data: { interviewQuestionId: string }) => void;
-    "code:change": (data: {
-        interviewQuestionId: string;
-        code: string;
-        language: string;
-    }) => void;
-    "chat:message": (data: { message: string }) => void;
-    "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
-    "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;
-    "webrtc:ice-candidate": (data: { candidate: RTCIceCandidateInit }) => void;
+  "code:join": (data: { interviewQuestionId: string }) => void;
+  "code:change": (data: {
+    interviewQuestionId: string;
+    code: string;
+    language: string;
+  }) => void;
+  "chat:message": (data: { message: string }) => void;
+  "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;
+  "webrtc:ice-candidate": (data: { candidate: RTCIceCandidateInit }) => void;
 }
 export interface ServerToClientEvents {
   "code:init": (data: { code: string; language: string; version: number }) => void;
@@ -30,7 +30,14 @@ export interface ServerToClientEvents {
     interviewId: string;
     title: string;
     status: string;
-    interviewQuestions: { id: string; questionTitle: string }[];
+    interviewQuestions: {
+      id: string;
+      questionTitle: string;
+      questionDescription: string;
+      functionName: string;
+      difficulty: string;
+      exampleTestCases: { input: unknown; expected: unknown }[];
+    }[];
   }) => void;
   "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
   "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;

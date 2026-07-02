@@ -41,11 +41,18 @@ export interface ServerToClientEvents {
   }) => void;
 
   "room:init": (data: {
-    interviewId: string;
-    title: string;
-    status: string;
-    interviewQuestions: { id: string; questionTitle: string }[];
-  }) => void;
+  interviewId: string;
+  title: string;
+  status: string;
+  interviewQuestions: {
+    id: string;
+    questionTitle: string;
+    questionDescription: string;
+    functionName: string;
+    difficulty: string;
+    exampleTestCases: { input: unknown; expected: unknown }[];
+  }[];
+}) => void;
 
   "webrtc:offer": (data: { sdp: RTCSessionDescriptionInit }) => void;
   "webrtc:answer": (data: { sdp: RTCSessionDescriptionInit }) => void;
