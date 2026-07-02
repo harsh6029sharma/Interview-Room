@@ -7,6 +7,7 @@ import {
   getInterviewHandler,
   completeInterviewHandler,
   getInterviews,
+  attachQuestionHandler,
 } from "../controllers/interview.controller";
 
 const router = Router()
@@ -17,5 +18,6 @@ router.post("/:id/join/candidate", joinAsCandidateHandler);
 router.get("/:id", requireAuthSession, getInterviewHandler);
 router.get("/", requireAuthSession, getInterviews);
 router.post("/:id/complete", requireAuthSession, completeInterviewHandler)
+router.post("/:id/questions", requireAuthSession, attachQuestionHandler);
 
 export default router;

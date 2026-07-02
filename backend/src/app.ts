@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route'
 import interviewRoutes from './routes/interview.route'
 import { errorMiddleware } from './middlewares/error.middleware';
 import submissionRoutes from './routes/submission.route'
+import questionRoutes from './routes/question.route'
 import cors from 'cors'
 
 const app = express()
@@ -26,6 +27,7 @@ app.use(cookieParser())
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/interviews", interviewRoutes)
 app.use("/api/v1", submissionRoutes)
+app.use("/api/v1/questions", questionRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

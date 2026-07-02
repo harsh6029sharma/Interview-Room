@@ -174,3 +174,26 @@ export async function getInterviewsByInterviewer(interviewerId: string) {
 
   return interviews;
 }
+
+export async function attachQuestion(interviewId: string, questionId: string, requesterId: string) {
+  const interview = await prisma.interview.findUnique({ where: { id: interviewId } });
+
+  if (!interview) throw new ApiError(404, "Interview not found");
+  if (interview.interviewerId !== requesterId) throw new ApiError(403, "Not authorized");
+
+  const question = await prisma.question.findUnique({ where: { id: questionId } });
+  if (!question) throw new ApiError(404, "Question not found");
+
+  const existingCount = await prisma.interviewQuestion.count({ where: { interviewId } });
+
+  const interviewQuestion = await prisma.interviewQuestion.create({
+    data: {
+      interviewId,
+      questionId,
+      order: existingCount + 1,
+    },
+    include: { question: true },
+  });
+
+  return interviewQuestion;
+}

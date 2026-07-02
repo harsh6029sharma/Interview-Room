@@ -68,7 +68,7 @@ model Interview {
 
 model Question {
   id           String     @id @default(cuid())
-  title        String
+  title        String     @unique
   description  String
   difficulty   Difficulty @default(MEDIUM)
   starterCode  Json

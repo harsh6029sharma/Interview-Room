@@ -26,3 +26,13 @@ export async function joinAsCandidate(id: string): Promise<{ roomToken: string }
   const res = await axiosInstance.post(`/interviews/${id}/join/candidate`);
   return res.data.data;
 }
+
+export async function getQuestions(): Promise<{ id: string; title: string; difficulty: string }[]> {
+  const res = await axiosInstance.get("/questions");
+  return res.data.data;
+}
+
+export async function attachQuestion(interviewId: string, questionId: string) {
+  const res = await axiosInstance.post(`/interviews/${interviewId}/questions`, { questionId });
+  return res.data.data;
+}

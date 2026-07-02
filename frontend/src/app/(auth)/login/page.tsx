@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginFormData } from "@/features/auth/schema";
 import { loginUser } from "@/features/auth/api";
 import { useAuthStore } from "@/stores/auth-store";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,6 +63,13 @@ export default function LoginPage() {
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Logging in..." : "Login"}
         </Button>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Don't have an account?{" "}
+          <Link href="/register" className="text-primary underline">
+            Sign up
+          </Link>
+        </p>
       </form>
     </div>
   );

@@ -106,3 +106,18 @@ export const completeInterviewHandler = asyncHandler(async (req: Request, res: R
 
     res.status(200).json(new ApiResponse(200, summary, "Interview completed and summary generated"))
 })
+
+export const attachQuestionHandler = asyncHandler(async (req: Request, res: Response) => {
+  const interviewId = req.params.id;
+  const { questionId } = req.body;
+
+  if (!interviewId || Array.isArray(interviewId)) {
+    throw new ApiError(400, "Invalid interview id");
+  }
+  if (!questionId || typeof questionId !== "string") {
+    throw new ApiError(400, "questionId is required");
+  }
+
+  const result = await interviewService.attachQuestion(interviewId, questionId, req.user!.sub);
+  return res.status(200).json(new ApiResponse(200, result, "question attached successfully"));
+});
